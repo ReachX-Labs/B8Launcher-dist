@@ -1,31 +1,21 @@
 # B8Launcher distributions
 
-Public installers and update feed for B8 Studios. Application source remains in
-[the private B8Launcher repository](https://github.com/ReachX-Labs/B8Launcher).
-No Noobsters/ReachX installer or update channel is shared with this repository.
+[Download B8Launcher](https://github.com/ReachX-Labs/B8Launcher-dist/releases/latest)
 
-## Build
+Installers and signed automatic updates are hosted on the Noobsters CDN in B8's independent namespace:
 
-Organization maintainers run **Build B8 distributions** in
-[Noobsters Actions](https://github.com/ReachX-Labs/ReachXLabs/actions/workflows/b8-distribution.yml).
-It checks out one immutable B8 commit. This temporary signing broker uses the
-existing Apple Developer ID/notarization secrets without exporting them.
+- Stable feed: <https://cdn.noobsters.net/b8launcher/stable/latest.json>
+- Versioned files: `https://cdn.noobsters.net/b8launcher/releases/<version>/<platform>/<filename>`
+- Source: [private B8Launcher repository](https://github.com/ReachX-Labs/B8Launcher).
 
-Blacksmith builds Windows x64 (NSIS), Linux x64 (AppImage), macOS Apple Silicon
-and macOS Intel (DMG plus updater archive). macOS Intel is cross-compiled with
-Xcode on a Blacksmith Apple Silicon runner. Updater signatures use B8's own key.
+The `latest.json` asset in release 0.0.13 is a compatibility bridge for existing B8Launcher 0.0.11/0.0.12 installations. It downloads 0.0.13 from the CDN. From 0.0.13 onward, the launcher checks the CDN directly. This repository's feed does not need to change for subsequent CDN releases.
 
-The complete Actions artifact contains installers, signed updater archives,
-SHA256SUMS.txt, artifacts.json and latest.json. Aggregation verifies every hash,
-platform, version and B8 identity before producing the complete artifact.
+## Build and publish
 
-## Publication
+Organization maintainers bump the B8 version, then manually run **Publish signed B8 updates to Noobsters CDN** in [Noobsters Actions](https://github.com/ReachX-Labs/ReachXLabs/actions/workflows/b8-distribution.yml), supplying the full B8 source commit SHA. This workflow **publishes a stable B8 update** after validation.
 
-**No release is published automatically.** No launcher update is authorized by
-running the build workflow. A maintainer must separately authorize publication
-of the complete verified artifact as a versioned release in this repository.
+Blacksmith builds Windows x64 (NSIS), Linux x64 (AppImage), macOS Apple Silicon and Intel (DMG and signed updater archives). Apple credentials remain in the original signing broker; B8 uses its own updater signing key. Intel is cross-compiled and needs a hardware smoke test.
 
-Future stable feed: `releases/latest/download/latest.json`.
-A production app requires the first complete stable release/feed to be published
-before distribution to players. Source code, local sessions, server files,
-whitelist records and signing private keys must never be uploaded here.
+Bundles transfer directly into private CDN staging without GitHub Actions artifacts. Production identity, Bola8Studios scope, source/Core provenance, SHA-256 checksums and actual Tauri updater signatures are verified before the stable feed changes atomically. Failed builds preserve the previous stable feed; published versions are immutable. A final native Tauri probe downloads and validates all four platforms without installing them.
+
+B8's update channel and application identity are independent of the general Noobsters launcher. Source code, player sessions, server files, whitelist records and private signing keys are never published here or in the CDN release folders.
